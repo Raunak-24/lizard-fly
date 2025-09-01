@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lizard Chases Butterfly</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* General styles for the page */
+        body {
+            margin: 0;
+            height: 100vh;
+            /* A dusky, twilight gradient background */
+            background: linear-gradient(135deg, #2c3e50 0%, #4a548c 50%, #8a6d94 100%);
+            overflow: hidden;
+            /* Hide the default system cursor */
+            cursor: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* The butterfly container */
+        #butterfly {
+            position: absolute;
+            width: 60px; /* Restored original size */
+            height: auto;
+            transform-origin: center;
+            pointer-events: none; 
+            will-change: transform, top, left;
+            z-index: 10; /* Ensure butterfly is on top */
+        }
+
+        /* Restored Butterfly Wing Animation */
+        #left-wing, #right-wing {
+            transform-origin: 50% 50%;
+        }
+
+        #left-wing {
+             animation: flap-left 0.2s infinite alternate ease-in-out;
+        }
+        #right-wing {
+            animation: flap-right 0.2s infinite alternate ease-in-out;
+        }
+        
+        @keyframes flap-left {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(50deg) translateZ(5px); }
+        }
+        @keyframes flap-right {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(-50deg) translateZ(5px); }
+        }
+
+
+        /* The lizard container */
+        #lizard {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            transform-origin: center;
+            pointer-events: none;
+            will-change: transform, top, left;
+        }
+
+        /* Lizard Leg Animation */
+        .lizard-leg {
+            transform-origin: top center;
+        }
+        .leg-front-left, .leg-back-right {
+            animation: walk1 0.3s infinite linear;
+        }
+        .leg-front-right, .leg-back-left {
+            animation: walk2 0.3s infinite linear;
+        }
+
+        @keyframes walk1 {
+            0%   { transform: rotate(20deg); }
+            50%  { transform: rotate(-20deg); }
+            100% { transform: rotate(20deg); }
+        }
+        @keyframes walk2 {
+            0%   { transform: rotate(-20deg); }
+            50%  { transform: rotate(20deg); }
+            100% { transform: rotate(-20deg); }
+        }
+        
+        /* Gemini API Feature Styles */
+        #thought-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.2s ease-in-out;
+            z-index: 1000;
+        }
+        #thought-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        #thought-button:disabled {
+            cursor: wait;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .thought-bubble {
+            position: absolute;
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            max-width: 200px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            font-style: italic;
+            color: #555;
+            pointer-events: none;
+        }
+
+        .thought-bubble.visible {
+            opacity: 1;
+        }
+
+        .thought-bubble::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+
+        .thought-bubble.butterfly-thought::after {
+            left: 50%;
+            bottom: -10px;
+            margin-left: -10px;
+            border-width: 10px 10px 0 10px;
+            border-color: white transparent transparent transparent;
+        }
+        .thought-bubble.lizard-thought::after {
+            left: 50%;
+            top: -10px;
+            margin-left: -10px;
+            border-width: 0 10px 10px 10px;
+            border-color: transparent transparent white transparent;
+        }
+
+
+    </style>
+</head>
+<body>
+    
+    <!-- Restored the original animated SVG butterfly -->
+    <svg id="butterfly" viewBox="0 0 100 80">
+        <defs>
+            <linearGradient id="wingGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#a29bfe;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#6c5ce7;stop-opacity:1" />
+            </linearGradient>
+        </defs>
+        <!-- Body -->
+        <g>
+            <ellipse cx="50" cy="40" rx="4" ry="15" fill="#333" />
+            <!-- Antennae -->
+            <path d="M 50 25 Q 45 15 40 10" stroke="black" stroke-width="1" fill="none"/>
+            <path d="M 50 25 Q 55 15 60 10" stroke="black" stroke-width="1" fill="none"/>
+        </g>
+        <!-- Left Wing -->
+        <g id="left-wing">
+            <path d="M50,40 C10,10 10,70 50,40 Z" fill="url(#wingGradient)"/>
+            <path d="M50,40 C10,10 10,70 50,40" stroke="black" stroke-width="1" fill="none"/>
+            <circle cx="25" cy="30" r="2" fill="white"/>
+            <circle cx="35" cy="50" r="2" fill="white"/>
+            <circle cx="20" cy="55" r="1.5" fill="white"/>
+        </g>
+        <!-- Right Wing -->
+        <g id="right-wing">
+            <path d="M50,40 C90,10 90,70 50,40 Z" fill="url(#wingGradient)"/>
+            <path d="M50,40 C90,10 90,70 50,40" stroke="black" stroke-width="1" fill="none"/>
+            <circle cx="75" cy="30" r="2" fill="white"/>
+            <circle cx="65" cy="50" r="2" fill="white"/>
+            <circle cx="80" cy="55" r="1.5" fill="white"/>
+        </g>
+    </svg>
+
+
+    <!-- This is the SVG for the lizard -->
+    <svg id="lizard" viewBox="0 0 100 100">
+        <g>
+            <!-- Legs -->
+            <path class="lizard-leg leg-front-left" d="M 50 45 Q 40 40 35 30" stroke="#4a4e69" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path class="lizard-leg leg-front-right" d="M 50 45 Q 60 40 65 30" stroke="#4a4e69" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path class="lizard-leg leg-back-left" d="M 50 65 Q 40 70 35 80" stroke="#4a4e69" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path class="lizard-leg leg-back-right" d="M 50 65 Q 60 70 65 80" stroke="#4a4e69" stroke-width="4" fill="none" stroke-linecap="round"/>
+             <!-- Tail -->
+            <path d="M 50 70 Q 50 90 30 95" stroke="#6b708d" stroke-width="6" fill="none" stroke-linecap="round" />
+            <!-- Body -->
+            <ellipse cx="50" cy="50" rx="12" ry="25" fill="#6b708d" />
+            <!-- Head -->
+            <circle cx="50" cy="25" r="10" fill="#6b708d"/>
+            <!-- Eyes -->
+            <circle cx="46" cy="23" r="1.5" fill="black"/>
+            <circle cx="54" cy="23" r="1.5" fill="black"/>
+        </g>
+    </svg>
+
+    <!-- Gemini API Feature Elements -->
+    <button id="thought-button">✨ What are they thinking?</button>
+    <div id="thought-bubble-container"></div>
+
+    <script>
+        const butterfly = document.getElementById('butterfly');
+        const lizard = document.getElementById('lizard');
+        const thoughtButton = document.getElementById('thought-button');
+        const thoughtContainer = document.getElementById('thought-bubble-container');
+
+        let mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        let butterflyPos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        let lizardPos = { x: window.innerWidth / 2, y: window.innerHeight / 2 + 150 }; // Start lizard below
+
+        let butterflyHistory = [];
+        const delayFrames = 20; 
+
+        const butterflySpeed = 0.1;
+        const lizardSpeed = 0.08; 
+
+        document.addEventListener('mousemove', e => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        
+        // --- Gemini API Integration ---
+        
+        async function getCreativeThought() {
+            thoughtButton.disabled = true;
+            thoughtButton.textContent = 'Thinking...';
+            
+            const distance = Math.hypot(butterflyPos.x - lizardPos.x, butterflyPos.y - lizardPos.y);
+            const whoIsThinking = Math.random() < 0.5 ? 'lizard' : 'butterfly';
+            
+            let context = '';
+            if (distance < 100) {
+                context = 'is very close to catching the butterfly!';
+            } else if (distance < 300) {
+                context = 'is determinedly chasing the butterfly.';
+            } else {
+                context = 'is quite far from the butterfly.';
+            }
+
+            const userQuery = `A lizard ${context} Write a short, whimsical, one-sentence thought from the ${whoIsThinking}'s perspective.`;
+            const systemPrompt = "You are a creative storyteller. Provide a single, imaginative sentence that captures a character's thought in a playful scenario.";
+            
+            const apiKey = ""; // API key will be automatically provided in the environment.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const thought = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (thought) {
+                    displayThought(thought, whoIsThinking);
+                } else {
+                    console.error('Could not get thought from API:', result);
+                    displayThought('Maybe I should just eat a leaf instead...', 'lizard');
+                }
+
+            } catch (error) {
+                console.error('Error calling Gemini API:', error);
+                // Display a fallback thought on error
+                displayThought(whoIsThinking === 'lizard' ? 'I think I can, I think I can...' : 'The world is such a big, beautiful blur!', whoIsThinking);
+            } finally {
+                setTimeout(() => {
+                    thoughtButton.disabled = false;
+                    thoughtButton.innerHTML = '✨ What are they thinking?';
+                }, 1000); // Prevent spamming
+            }
+        }
+
+        function displayThought(text, character) {
+            thoughtContainer.innerHTML = ''; // Clear previous thought
+            
+            const bubble = document.createElement('div');
+            bubble.textContent = text;
+            bubble.classList.add('thought-bubble');
+
+            let targetPos;
+            if (character === 'butterfly') {
+                targetPos = butterflyPos;
+                bubble.classList.add('butterfly-thought');
+                bubble.style.top = (targetPos.y - 80) + 'px'; // Position above butterfly
+                bubble.style.left = (targetPos.x - bubble.offsetWidth / 2) + 'px';
+            } else { // lizard
+                targetPos = lizardPos;
+                bubble.classList.add('lizard-thought');
+                bubble.style.top = (targetPos.y + 60) + 'px'; // Position below lizard
+                bubble.style.left = (targetPos.x - bubble.offsetWidth / 2) + 'px';
+            }
+            
+            thoughtContainer.appendChild(bubble);
+
+            // Force reflow to apply initial styles before adding 'visible' class
+            void bubble.offsetWidth; 
+
+            bubble.classList.add('visible');
+
+            // Remove the bubble after some time
+            setTimeout(() => {
+                bubble.classList.remove('visible');
+                setTimeout(() => {
+                    if (thoughtContainer.contains(bubble)) {
+                        thoughtContainer.removeChild(bubble);
+                    }
+                }, 500); // Wait for fade out to complete
+            }, 6000);
+        }
+
+        thoughtButton.addEventListener('click', getCreativeThought);
+
+
+        // --- Main Animation Loop ---
+        function update() {
+            // --- Butterfly follows mouse ---
+            let dx_b = mouse.x - butterflyPos.x;
+            let dy_b = mouse.y - butterflyPos.y;
+            let angle_b = Math.atan2(dy_b, dx_b) * 180 / Math.PI + 90;
+            butterflyPos.x += dx_b * butterflySpeed;
+            butterflyPos.y += dy_b * butterflySpeed;
+            butterfly.style.left = butterflyPos.x + 'px';
+            butterfly.style.top = butterflyPos.y + 'px';
+            butterfly.style.transform = `translate(-50%, -50%) rotate(${angle_b}deg)`;
+
+            // Store the butterfly's current position in the history array
+            butterflyHistory.push({ x: butterflyPos.x, y: butterflyPos.y });
+            if (butterflyHistory.length > delayFrames) {
+                butterflyHistory.shift();
+            }
+
+            // Lizard follows butterfly's trail
+            if (butterflyHistory.length > delayFrames - 1) {
+                let targetPos = butterflyHistory[0];
+                let dx_l = targetPos.x - lizardPos.x;
+                let dy_l = targetPos.y - lizardPos.y;
+                let angle_l = Math.atan2(dy_l, dx_l) * 180 / Math.PI + 90;
+                lizardPos.x += dx_l * lizardSpeed;
+                lizardPos.y += dy_l * lizardSpeed;
+                lizard.style.left = lizardPos.x + 'px';
+                lizard.style.top = lizardPos.y + 'px';
+                lizard.style.transform = `translate(-50%, -50%) rotate(${angle_l}deg)`;
+            }
+            
+            requestAnimationFrame(update);
+        }
+
+        update();
+    </script>
+</body>
+</html>
+
+
+
